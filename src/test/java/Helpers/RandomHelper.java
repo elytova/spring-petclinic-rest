@@ -16,7 +16,7 @@ public class RandomHelper {
 
 	public static int randomNumeric() {
 		Random randI = new Random();
-		return randI.ints(1, 1000).findAny().getAsInt();
+		return randI.ints(100, 1000).findAny().getAsInt();
 	}
 
 }
