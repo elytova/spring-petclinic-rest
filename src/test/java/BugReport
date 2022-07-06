@@ -1,0 +1,72 @@
+***BUG REPORT***
+
+===================
+===================
+
+PET CONTROLLER TEST
+
+===================
+
+1) ShouldReturnErrorWhenPathDoesntExist()
+Test Case: отправить запрос в "/owners/{ownerId}/pets", метод Get, с пустым Path
+Actual Result: Падаем в ошибку java.lang.IllegalArgumentException: Invalid number of path parameters. Expected 1, was 0.
+               Undefined path parameters are: ownerId.,
+Expected Result: 400 Bad request
+
+
+2) ShouldAddVisitWhenOwnerExistsAndCorrectBody()
+Test Case: отправить корректный запрос в "/owners/{ownerId}/pets", метод Post (Update), visits непустой
+Actual Result: Метод возвращает 201код и непустой visits (т.к. мы обновили запись, заполнив сущность)
+Expected Result: Метод возвращает 201код, но visits пустой.
+
+P.S. Также проверила вручную: сваггер отвечает 201м кодом, если запросить гетом информацию, visits правда будет пустой.
+     В БД тоже пусто
+
+3) ShouldAddVisitWhenOwnerExistsAndCorrectBody()
+Test Case: отправить корректный запрос в "/owners/{ownerId}/pets/{petId}", метод Post (Update), visits непустой
+Actual Result: Метод возвращает 201код и непустой visits (т.к. мы обновили запись, заполнив сущность)
+Expected Result: Метод возвращает 201код, но visits пустой.
+
+===================
+
+VET CONTROLLER TEST
+
+===================
+
+1) ShouldReturnCreatedVet()
+Test Case: сравнить, что количество записей в БД и выдаваемое в сваггере -одинаковое.
+           Как проверить вручную: убрать удаление записей после выполнения теста, запустить тест. Вручную прогнать
+           select count(*) from vets и сравнить с полученными данными в сваггере
+Actual Result: JSON path vetList.size() doesn't match.
+               Expected: is <[7]>
+                 Actual: <6>
+Expected Result: в ответе выводятся не все ветеринары (Actual: <7>):
+                 т.е. те, что уже есть в БД, возвращаются, а добавленные в БД позже- нет.
+                 Также это влияет на то, что тест ShouldReturnVetsAndSpecialtiesWhenItExists также валится, т.к.
+                 если не выводятся новые вет.врачи,то и их специальности тоже.
+
+===================
+
+VISIT CONTROLLER TEST
+
+===================
+
+1) ShouldReturnEmptyResponseWhenDataDoesntExist
+Test Case: в гет запросе указать существующий OwnerId, но такой PetId, который не привязан к этому OwnerId
+           в таблице VISITS
+Actual Result: [
+                 {
+                   "date": "2022-06-25",
+                   "description": "string",
+                   "id": 0,
+                   "new": true
+                 }
+               ]
+Expected Result: респонс должен быть пустой. К тому же, проверила БД: записи с id=0 там нет.
+
+2) ShouldAddVisitWhenBodyIsCorrect и ShouldChangeVisitWhenBodyIsCorrect
+Precondition: в базе есть OwnerId=1, привязать к нему новую запись в Pets и Visits
+Test Case: в пост запросе указать существующий OwnerId и привязанный к нему PetId. В первом случае указать
+           новые данные (чтобы visits добавился), во втором- поменять description для существующего visits
+Actual Result: 201/200 код ошибки: приложению понятно, какие данные в БД менять, добавлены корректно
+Expected Result: 500 код ошибки "Internal Server Error"
